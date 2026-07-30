@@ -1,8 +1,9 @@
 import { BadRequestException } from '@nestjs/common';
+import type { MulterModuleOptions } from '@nestjs/platform-express';
 import { existsSync, mkdirSync } from 'fs';
 import { unlink } from 'fs/promises';
 import { extname } from 'path';
-import { diskStorage, type Options } from 'multer';
+import { diskStorage } from 'multer';
 
 const DEFAULT_IMAGE_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const DEFAULT_MAX_FILE_SIZE_BYTES = 5 * 1024 * 1024;
@@ -29,7 +30,7 @@ export interface ImageUploadFieldConfig {
  * uploads gigantes), y el límite exacto de cada campo se revisa después de
  * subido con `assertUploadedFilesWithinLimits`.
  */
-export function createImageUploadOptions(fields: ImageUploadFieldConfig[]): Options {
+export function createImageUploadOptions(fields: ImageUploadFieldConfig[]): MulterModuleOptions {
   const configByFieldName = new Map(fields.map((field) => [field.name, field]));
 
   for (const field of fields) {
@@ -64,6 +65,7 @@ export function createImageUploadOptions(fields: ImageUploadFieldConfig[]): Opti
           new BadRequestException(
             `El campo "${file.fieldname}" solo acepta: ${allowedMimeTypes.join(', ')}.`,
           ),
+          false,
         );
         return;
       }
