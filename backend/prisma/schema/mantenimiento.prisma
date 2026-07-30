@@ -1,0 +1,70 @@
+// --- Módulo de mantenimientos ---
+
+model Categoria {
+  id     String @id @default(cuid())
+  nombre String
+
+  productos Producto[]
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("CategoriaCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("CategoriaActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("mantenimiento_categoria")
+}
+
+model Marca {
+  id     String @id @default(cuid())
+  nombre String
+
+  productos Producto[]
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("MarcaCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("MarcaActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("mantenimiento_marca")
+}
+
+model Producto {
+  id             String  @id @default(cuid())
+  codigo         String
+  nombre         String
+  descripcion    String?
+  costo          Float
+  porcentaje_iva Float
+  pvp            Float
+  activo         Boolean @default(true)
+  foto           String?
+  foto_2         String?
+
+  categoria    Categoria? @relation(fields: [categoria_id], references: [id])
+  categoria_id String?
+
+  marca    Marca?  @relation(fields: [marca_id], references: [id])
+  marca_id String?
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("ProductoCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("ProductoActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("mantenimiento_producto")
+}

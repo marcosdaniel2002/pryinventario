@@ -1,0 +1,169 @@
+// --- Módulo de seguridad (RBAC por URL) ---
+
+model Rol {
+  id          String  @id @default(cuid())
+  nombre      String
+  descripcion String?
+
+  usuarios Usuario[]
+  rol_urls RolUrl[]
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("RolCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("RolActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("seguridad_rol")
+}
+
+model Usuario {
+  id       String  @id @default(cuid())
+  username String
+  password String
+  nombre   String
+  email    String?
+
+  rol_id String
+  rol    Rol    @relation(fields: [rol_id], references: [id], onDelete: Restrict)
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  // creado_por_id es nullable solo en Usuario: el primer usuario del
+  // sistema (seed inicial / superadmin) no tiene creador humano.
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String?
+  actualizado_por_id String?
+
+  creado_por      Usuario? @relation("UsuarioCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("UsuarioActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  // Reversas de las relaciones de auditoría de todos los modelos
+  // (necesarias porque Usuario es el destino de todas las FKs
+  // creado_por_id / actualizado_por_id del schema).
+  usuarios_creados      Usuario[] @relation("UsuarioCreadoPor")
+  usuarios_actualizados Usuario[] @relation("UsuarioActualizadoPor")
+
+  roles_creados      Rol[] @relation("RolCreadoPor")
+  roles_actualizados Rol[] @relation("RolActualizadoPor")
+
+  grupos_url_creados      GrupoUrl[] @relation("GrupoUrlCreadoPor")
+  grupos_url_actualizados GrupoUrl[] @relation("GrupoUrlActualizadoPor")
+
+  urls_creadas      Url[] @relation("UrlCreadoPor")
+  urls_actualizadas Url[] @relation("UrlActualizadoPor")
+
+  rol_urls_creados      RolUrl[] @relation("RolUrlCreadoPor")
+  rol_urls_actualizados RolUrl[] @relation("RolUrlActualizadoPor")
+
+  configuraciones_creadas      Configuracion[] @relation("ConfiguracionCreadoPor")
+  configuraciones_actualizadas Configuracion[] @relation("ConfiguracionActualizadoPor")
+
+  // MATENIMIENTO
+
+  productos_creados      Producto[] @relation("ProductoCreadoPor")
+  productos_actualizados Producto[] @relation("ProductoActualizadoPor")
+
+  categorias_creados      Categoria[] @relation("CategoriaCreadoPor")
+  categorias_actualizados Categoria[] @relation("CategoriaActualizadoPor")
+
+  marcas_creados      Marca[] @relation("MarcaCreadoPor")
+  marcas_actualizados Marca[] @relation("MarcaActualizadoPor")
+
+  @@map("seguridad_usuario")
+}
+
+model GrupoUrl {
+  id     String  @id @default(cuid())
+  nombre String
+  path   String
+  icono  String?
+  orden  Int     @default(0)
+
+  urls Url[]
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("GrupoUrlCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("GrupoUrlActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("seguridad_grupo_url")
+}
+
+model Url {
+  id     String  @id @default(cuid())
+  nombre String
+  path   String
+  icono  String?
+  orden  Int     @default(0)
+
+  grupo_url_id String
+  grupo_url    GrupoUrl @relation(fields: [grupo_url_id], references: [id], onDelete: Cascade)
+
+  rol_urls RolUrl[]
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("UrlCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("UrlActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("seguridad_url")
+}
+
+model Configuracion {
+  id          String  @id @default(cuid())
+  nombre      String
+  descripcion String?
+  icono       String?
+  celular     String?
+  correo      String?
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("ConfiguracionCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("ConfiguracionActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("seguridad_configuracion")
+}
+
+model RolUrl {
+  id String @id @default(cuid())
+
+  rol_id String
+  rol    Rol    @relation(fields: [rol_id], references: [id], onDelete: Cascade)
+
+  url_id String
+  url    Url    @relation(fields: [url_id], references: [id], onDelete: Cascade)
+
+  // --- Auditoría (obligatorio en todos los modelos) ---
+  status             Boolean  @default(true)
+  creado_en          DateTime @default(now())
+  actualizado_en     DateTime @updatedAt
+  creado_por_id      String
+  actualizado_por_id String?
+
+  creado_por      Usuario  @relation("RolUrlCreadoPor", fields: [creado_por_id], references: [id])
+  actualizado_por Usuario? @relation("RolUrlActualizadoPor", fields: [actualizado_por_id], references: [id])
+
+  @@map("seguridad_rol_url")
+}
